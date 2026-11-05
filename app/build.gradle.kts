@@ -33,10 +33,14 @@ android {
       keyPassword = System.getenv("KEY_PASSWORD")
     }
     create("debugConfig") {
-      storeFile = file("${rootDir}/debug.keystore")
-      storePassword = "android"
-      keyAlias = "androiddebugkey"
-      keyPassword = "android"
+      // debug.keystore ከሌለ build እንዳይቋረጥ ፋይሉ ካለ ይጠቀማል ካለፈ ግን default debug key እንዲጠቀም ተደረገ
+      val debugKeyFile = file("${rootDir}/debug.keystore")
+      if (debugKeyFile.exists()) {
+        storeFile = debugKeyFile
+        storePassword = "android"
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+      }
     }
   }
 
@@ -52,7 +56,10 @@ android {
     debug {
       // Do not remove or modify this signingConfig assignment. It is necessary for Android apps in
       // AI Studio.
-      signingConfig = signingConfigs.getByName("debugConfig")
+      val debugConfigObj = signingConfigs.findByName("debugConfig")
+      if (debugConfigObj != null && debugConfigObj.storeFile?.exists() == true) {
+        signingConfig = debugConfigObj
+      }
     }
   }
   compileOptions {
